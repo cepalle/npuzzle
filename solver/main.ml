@@ -1,6 +1,30 @@
 open String
 open List
 
+type e_move = Up | Down | Right | Left
+
+type np_node = {
+  cost: int;
+  hys: e_move list;
+  grd: int list list;
+}
+
+(* TODO *)
+let grd_move (grd: int list list) (m:e_move) : int list list = grd
+
+let np_node_move {cost=cost; hys=hys; grd=grd} (m:e_move) : np_node = {
+  cost = cost + 1;
+  hys = m::hys;
+  grd = grd_move grd m
+}
+
+let a_start_solver () =
+
+;;
+
+
+  (* Input *)
+
 let read_npuzzle_input () : int list list =
   let del_comment (s: string) : string = hd (split_on_char '#' s) in
 

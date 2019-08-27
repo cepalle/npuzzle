@@ -1,16 +1,17 @@
 open String
 open List
 
-let del_comment (s: string) : string = hd (split_on_char '#' s)
-
-let parse_line (s : string) : int list = filter_map (fun ss -> 
-if (String.length ss) == 0 then
-  None
-else
-  Some (int_of_string ss)
-) (split_on_char ' ' s)
-
 let read_npuzzle_input () : int list list =
+  let del_comment (s: string) : string = hd (split_on_char '#' s) in
+
+  let parse_line (s : string) : int list = filter_map (fun ss -> 
+    if (String.length ss) == 0 then
+      None
+    else
+      Some (int_of_string ss)
+    ) (split_on_char ' ' s)
+  in
+  
   let rec read_npuzzle_input_rec (i : int) (nl : int) : int list list = 
     if i == 0 then
       []
@@ -23,6 +24,7 @@ let read_npuzzle_input () : int list list =
             lnum
       ] (read_npuzzle_input_rec (i - 1) nl)
   in
+
   let _ = read_line () in
   let nl = read_int_opt () in
     if nl == None then
@@ -30,7 +32,7 @@ let read_npuzzle_input () : int list list =
     else
       read_npuzzle_input_rec (Option.get nl) (Option.get nl)
 
-let print_npuzzle np =
+let print_npuzzle (np: int list list) =
   List.map (fun l ->
     let _ = List.map (fun e ->
       print_string ((string_of_int e) ^ " ")

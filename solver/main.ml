@@ -7,28 +7,40 @@ type np_node = {
   cost: int;
   hys: e_move list;
   grd: int list list;
+  score: int;
 }
 
 (* TODO *)
-let grd_move (grd: int list list) (m:e_move) : int list list = grd
+let grd_move (grd: int list list) (m: e_move): int list list = grd
 
-let np_node_move {cost=cost; hys=hys; grd=grd} (m:e_move) : np_node = {
-  cost = cost + 1;
-  hys = m::hys;
-  grd = grd_move grd m
-}
+let np_node_move {cost=cost; hys=hys; grd=grd} (m: e_move) (scoring: int list list -> int): np_node =
+  let nwgrd = grd_move grd m in
+  let nwcost = cost + 1 in {
+    cost = nwcost;
+    hys = m :: hys;
+    grd = nwgrd;
+    score = scoring nwgrd + nwcost;
+  }
 
-let a_start_solver () =
+(* TODO *)
+let is_solvable (grd: int list list): bool = true
+
+(* TODO *)
+let scoring_grd_manhattan (grd: int list list): int = 0
+
+let scoring_node ({score=score; cost=cost}: np_node) (w: int) (greedy: bool): int =
+  w * score + if greedy then 0 else cost
+
+let a_start_solver (scoring_grd: int list list -> int) (w: int) (greedy: bool): np_node =
 
 ;;
 
-
   (* Input *)
 
-let read_npuzzle_input () : int list list =
-  let del_comment (s: string) : string = hd (split_on_char '#' s) in
+let read_npuzzle_input (): int list list =
+  let del_comment (s: string): string = hd (split_on_char '#' s) in
 
-  let parse_line (s : string) : int list = filter_map (fun ss -> 
+  let parse_line (s: string): int list = filter_map (fun ss -> 
     if (String.length ss) == 0 then
       None
     else
@@ -36,7 +48,7 @@ let read_npuzzle_input () : int list list =
     ) (split_on_char ' ' s)
   in
   
-  let rec read_npuzzle_input_rec (i : int) (nl : int) : int list list = 
+  let rec read_npuzzle_input_rec (i: int) (nl: int): int list list = 
     if i == 0 then
       []
     else

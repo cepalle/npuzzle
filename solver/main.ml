@@ -35,9 +35,10 @@ let np_node_move {cost=cost; hys=hys; grd=grd} (m: e_move) (scoring_node: np_nod
       score = scoring_node {grd=(Option.get nwgrd); cost=nwcost; hys=[]; score=0};
     }
 
-(* TODO *)
 let rec num_to_pos (num: int) (n: int): coord =
-  if num > n * 4 - 4 then
+  if num == n * n then
+    {x = (n - 1) / 2; y = (n) / 2}
+  else if num > n * 4 - 4 then
     let {x=xb; y=yb} = num_to_pos (num - (n * 4 + 4)) (n - 1) in
     {x = xb + 1; y = yb + 1}
   else
@@ -64,14 +65,36 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
       else if y == n - 1 then 3 * n - 2 - x
       else 4 * n - 3 - y
   else
-    n * 4 - 4 + (pos_to_num {x = x - 1; y = y - 1} (n - 1))
+    let num_in = pos_to_num {x = x - 1; y = y - 1} (n - 1) in
+      if num_in == 0 then
+        0
+      else
+        n * 4 - 4 + num_in
 
 (* TODO *)
 let is_solvable (grd: int list list): bool = true
 
 (* TODO *)
-let is_resolve (grd: int list list): bool = true
+let is_resolve (grd: int list list): bool =
+  let c = length grd in
+  let (bg, _) : bool * int =
+    fold_left (fun ((bfg, i): bool * int) (line : int list) ->
+      if (bfg == false) then
+        (false, 0)
+      else
+        (
+          let (bl, _) = fold_left (fun ((bfl, j): bool * int) (e: int) -> 
+              if (bfl == false) then
+                (false, 0)
+              else
+                (num_to_pos e c != {x=j; y=i}, j + 1)
+            ) (true, 0) line
+          in bl
+        , i + 1)
+    ) (true, 0) grd
+  in bg
 
+;;
 (* TODO *)
 let scoring_grd_manhattan (grd: int list list): int = 0
 

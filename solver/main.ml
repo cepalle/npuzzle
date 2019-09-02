@@ -36,9 +36,17 @@ let np_node_move {cost=cost; hys=hys; grd=grd} (m: e_move) (scoring_node: np_nod
     }
 
 (* TODO *)
-let num_to_pos (num: int) (n: int): coord = {x=0;y=0}
+let rec num_to_pos (num: int) (n: int): coord =
+  if num > n * 4 - 4 then
+    let {x=xb; y=yb} = num_to_pos (num - (n * 4 + 4)) (n - 1) in
+    {x = xb + 1; y = yb + 1}
+  else
+    if num == 0 then {x=0; y=0}
+    else if num <= n then {x = num - 1; y=0}
+    else if num <= n * 2 - 1 then {x = n - 1; y = num - n}
+    else if num <= n * 3 - 2 then {x = (n * 3 - 2) - num; y = n - 1}
+    else {x=0; y = (n * 4 - 3) - num}
 
-(* TODO *)
 let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
   if x == 0 || y == 0 || x == n - 1 || y == n - 1 then
     if (n == 0) then
@@ -82,8 +90,7 @@ let a_start_solver (scoring_node: np_node -> int) (start: np_node): np_node =
     let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
     let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (np_node_get_grd frst)) == None) neighbours in
     opened := add_in_prio_queu neighbours_not_in_closed (tl !opened);
-    Hashtbl.add closed (np_node_get_grd frst) true;
-    neighbours
+    Hashtbl.add closed (np_node_get_grd frst) true
   done;
   start
 

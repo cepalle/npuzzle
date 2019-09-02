@@ -20,14 +20,14 @@ type coord = {
 let get_grd ({grd=grd}: np_node): int list list = grd
 let get_score ({score=score}: np_node): int = score
 
-let find_0 (grd: int list list): coord =
+let find_n (grd: int list list) (n: int): coord =
   let (_, c) =
     fold_left (fun ((b, {x=cx;y=cy}): bool * coord) (line : int list) ->
       if b then
         (true, {x=cx; y=cy})
       else
         let (bl, {x=cxn; y=cyn}) = fold_left (fun ((b, {x=cxf; y=cyf}): bool * coord) (e : int) ->
-          if e == 0 then 
+          if e == n then 
             (true, {x=cxf; y=cyf})
           else
             (false, {x = cxf + 1; y = cyf})
@@ -79,7 +79,7 @@ let get_at_coord (grd: 'a list list) ({x=x; y=y}: coord): 'a = get_at (get_at gr
 
 let grd_move (grd: int list list) (m: e_move): int list list option =
   let l = length grd in
-  let c0 = find_0 grd in
+  let c0 = find_n grd 0 in
   Option.map (fun cd ->
     let num_move = get_at_coord grd cd in
     replace_at_coord (replace_at_coord grd cd 0) c0 num_move
@@ -143,15 +143,21 @@ let gen_coord (n: int): coord list =
       0 -> []
       | _ -> append (gen_aux (i - 1) n) (gen_rec n (i - 1))
   in
-  gen_rec n n
+  List.filter (fun {x=x; y=y} ->
+    y < x
+  ) (gen_rec n n)
 
-(* TODO *)
-let count_permutation (grd: int list list): int = 0
+let count_permutation (grd: int list list): int =
+  let n = length grd in
+  fold_left (fun nb {x=a; y=b} ->
+    if pos_to_num (find_n grd a) < pos_to_num (find_n grd b) then
+      nb + 1
+    else
+      nb
+  ) 0 (gen_coord n)
   
-;;
-
 let is_solvable (grd: int list list): bool =
-  let {x=x0; y=y0} = find_0 grd in
+  let {x=x0; y=y0} = find_n grd 0 in
   let {x=xv0; y=yv0} = coord0 (length grd) in
   let nbp = count_permutation grd in
   let dst0 = (abs (x0 - xv0)) + (abs (y0 - yv0)) in

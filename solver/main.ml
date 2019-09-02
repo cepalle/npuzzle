@@ -40,8 +40,19 @@ let find_0 (grd: int list list): coord =
       ) (false, {x=0; y=0}) grd
   in c
 
-(* TODO *)
-let safe_move_coord (c: coord) (m: e_move) (n: int): coord option = None
+let move_coord ({x=x; y=y}: coord) (m: e_move): coord =
+  match m with
+      Up -> {x = x; y = y + 1}
+      | Down -> {x = x; y = y - 1}
+      | Right -> {x = x + 1; y = y}
+      | Left -> {x = x - 1; y = y}
+      
+let safe_move_coord ({x=x; y=y}: coord) (m: e_move) (n: int): coord option =
+  let is_valide ({x=x; y=y}: coord) =
+    x > 0 && y > 0 && x < n && y < n
+  in
+  let nwc = move_coord {x=x; y=y} m in
+  if is_valide nwc then Some nwc else None
 
 let indexed (l: 'a list): ('a * int) list =
   let rec indexed_rec (l: 'a list) (i: int): ('a * int) list =

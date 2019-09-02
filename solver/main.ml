@@ -17,7 +17,8 @@ type coord = {
   y: int;
 }
 
-let np_node_get_grd ({grd=grd}: np_node) : int list list = grd
+let get_grd ({grd=grd}: np_node) : int list list = grd
+let get_score ({score=score}: np_node): int = score
 
 (* TODO *)
 let grd_move (grd: int list list) (m: e_move): int list list option = Some grd
@@ -74,7 +75,6 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
 (* TODO *)
 let is_solvable (grd: int list list): bool = true
 
-(* TODO *)
 let is_resolve (grd: int list list): bool =
   let c = length grd in
   let (bg, _) : bool * int =
@@ -94,26 +94,30 @@ let is_resolve (grd: int list list): bool =
     ) (true, 0) grd
   in bg
 
-;;
 (* TODO *)
 let scoring_grd_manhattan (grd: int list list): int = 0
 
-(* TODO *)
-let add_in_prio_queu (to_add: np_node list) (opened: np_node list): np_node list = []
+let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list =
+  match opened with
+    [] -> [to_add]
+    | h::t -> if get_score to_add > get_score h then
+                to_add::opened
+              else
+                h::(add_in_prio_queu t to_add)
 
 let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost}: np_node): int =
   w * (scoring_grd grd) + if greedy then 0 else cost
 
-(* TODO max len + nb elements tot *)
+(* TODO max len + nb elements tot    ///  comp grd work in map ? *)
 let a_start_solver (scoring_node: np_node -> int) (start: np_node): np_node =
   let closed = Hashtbl.create (1024 * 1024) in
   let opened = ref ([start]: np_node list) in
-  while List.exists (fun e -> true) !opened && not (is_resolve (np_node_get_grd (hd !opened))) do
+  while List.exists (fun e -> true) !opened && not (is_resolve (get_grd (hd !opened))) do
     let (frst: np_node) = hd !opened in
     let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
-    let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (np_node_get_grd frst)) == None) neighbours in
-    opened := add_in_prio_queu neighbours_not_in_closed (tl !opened);
-    Hashtbl.add closed (np_node_get_grd frst) true
+    let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (get_grd frst)) == None) neighbours in
+    opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
+    Hashtbl.add closed (get_grd frst) true
   done;
   start
 

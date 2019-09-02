@@ -97,10 +97,10 @@ let np_node_move ({cost=cost; hys=hys; grd=grd}: np_node) (m: e_move) (scoring_n
 let coord0 (n: int): coord = {x = (n - 1) / 2; y = (n) / 2}
 
 let rec num_to_pos (num: int) (n: int): coord =
-  if num == n * n then
+  if num == 0 then
     coord0 n
   else if num > n * 4 - 4 then
-    let {x=xb; y=yb} = num_to_pos (num - (n * 4 + 4)) (n - 1) in
+    let {x=xb; y=yb} = num_to_pos (num - (n * 4 - 4)) (n - 2) in
     {x = xb + 1; y = yb + 1}
   else
     if num == 0 then {x=0; y=0}

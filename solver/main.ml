@@ -22,6 +22,10 @@ let get_score ({score=score}: np_node): int = score
 
 (* TODO *)
 let grd_move (grd: int list list) (m: e_move): int list list option = Some grd
+  
+
+
+(* find 0, find next coord, swap *)
 
 let np_node_move {cost=cost; hys=hys; grd=grd} (m: e_move) (scoring_node: np_node -> int): np_node option =
   let nwgrd = grd_move grd m in
@@ -73,11 +77,10 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
         n * 4 - 4 + num_in
 
 (* TODO *)
-let count_permutation (grd: int list list): int =
+let count_permutation (grd: int list list): int = 0
 
 ;;
-(* TODO *)
-let is_solvable (grd: int list list): bool = true
+let is_solvable (grd: int list list): bool = count_permutation grd mod 2 == 0
 
 let is_resolve (grd: int list list): bool =
   let c = length grd in

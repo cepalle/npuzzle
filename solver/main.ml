@@ -133,7 +133,6 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
 (* TODO *)
 let count_permutation (grd: int list list): int = 0
 
-(* TODO *)
 let is_solvable (grd: int list list): bool = count_permutation grd mod 2 == 0
 
 let is_resolve (grd: int list list): bool =

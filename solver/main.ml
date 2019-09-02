@@ -94,9 +94,11 @@ let np_node_move ({cost=cost; hys=hys; grd=grd}: np_node) (m: e_move) (scoring_n
     }
   ) (grd_move grd m)
 
+let coord0 (n: int): coord = {x = (n - 1) / 2; y = (n) / 2}
+
 let rec num_to_pos (num: int) (n: int): coord =
   if num == n * n then
-    {x = (n - 1) / 2; y = (n) / 2}
+    coord0 n
   else if num > n * 4 - 4 then
     let {x=xb; y=yb} = num_to_pos (num - (n * 4 + 4)) (n - 1) in
     {x = xb + 1; y = yb + 1}
@@ -130,10 +132,30 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
       else
         n * 4 - 4 + num_in
 
+let gen_coord (n: int): coord list =
+  let rec gen_aux (x: int) (i: int): coord list =
+    match i with
+      0 -> []
+      | _ -> {x=x; y=i - 1} :: (gen_aux x (i - 1))
+  in
+  let rec gen_rec (n: int) (i: int): coord list =
+    match i with
+      0 -> []
+      | _ -> append (gen_aux (i - 1) n) (gen_rec n (i - 1))
+  in
+  gen_rec n n
+
 (* TODO *)
 let count_permutation (grd: int list list): int = 0
+  
+;;
 
-let is_solvable (grd: int list list): bool = count_permutation grd mod 2 == 0
+let is_solvable (grd: int list list): bool =
+  let {x=x0; y=y0} = find_0 grd in
+  let {x=xv0; y=yv0} = coord0 (length grd) in
+  let nbp = count_permutation grd in
+  let dst0 = (abs (x0 - xv0)) + (abs (y0 - yv0)) in
+  dst0 mod 2 == nbp mod 2
 
 let is_resolve (grd: int list list): bool =
   let c = length grd in
@@ -224,4 +246,9 @@ let print_npuzzle (np: int list list) =
 
   (* Main *)
 
-let np = print_npuzzle (read_npuzzle_input ())
+(* let np = print_npuzzle (read_npuzzle_input ()) *)
+
+let _ = iter (fun {x=x; y=y} -> 
+  let _ = print_string ((string_of_int x) ^ " " ^ (string_of_int y)) in
+  print_newline ()
+) (gen_coord 5)

@@ -17,28 +17,71 @@ type coord = {
   y: int;
 }
 
-let get_grd ({grd=grd}: np_node) : int list list = grd
+let get_grd ({grd=grd}: np_node): int list list = grd
 let get_score ({score=score}: np_node): int = score
 
+let find_0 (grd: int list list): coord =
+  let (_, c) =
+    fold_left (fun ((b, {x=cx;y=cy}): bool * coord) (line : int list) ->
+      if b then
+        (true, {x=cx; y=cy})
+      else
+        let (bl, {x=cxn; y=cyn}) = fold_left (fun ((b, {x=cxf; y=cyf}): bool * coord) (e : int) ->
+          if e == 0 then 
+            (true, {x=cxf; y=cyf})
+          else
+            (false, {x = cxf + 1; y = cyf})
+        ) (false, {x = 0; y = cy}) line
+        in
+        if bl then
+          (true, {x=cxn; y=cyn})
+        else
+          (false, {x = 0; y = cyn + 1})
+      ) (false, {x=0; y=0}) grd
+  in c
+
 (* TODO *)
-let grd_move (grd: int list list) (m: e_move): int list list option = Some grd
-  
+let safe_move_coord (c: coord) (m: e_move) (n: int): coord option = None
 
+let indexed (l: 'a list): ('a * int) list =
+  let rec indexed_rec (l: 'a list) (i: int): ('a * int) list =
+    match l with
+      [] -> []
+      | h :: t -> (h, i) :: (indexed_rec t (i + 1))
+  in
+  indexed_rec l 0
 
-(* find 0, find next coord, swap *)
+let replace_at_coord (grd: 'a list list) ({x=x; y=y}: coord) (erpl: 'a): 'a list list =
+  List.map (fun (l, i) ->
+    List.map (fun (e, j) ->
+      if x = j && y = i then erpl
+      else e
+    ) (indexed l)
+  ) (indexed grd)
 
-let np_node_move {cost=cost; hys=hys; grd=grd} (m: e_move) (scoring_node: np_node -> int): np_node option =
-  let nwgrd = grd_move grd m in
-  if nwgrd == None then
-    None
-  else
-    let nwcost = cost + 1 in
-    Some {
-      cost = nwcost;
+let rec get_at (l: 'a list) (i: int): 'a =
+  match i with
+    0 -> hd l
+    | _ -> get_at (tl l) (i - 1)
+
+let get_at_coord (grd: 'a list list) ({x=x; y=y}: coord): 'a = get_at (get_at grd y) x
+
+let grd_move (grd: int list list) (m: e_move): int list list option =
+  let l = length grd in
+  let c0 = find_0 grd in
+  Option.map (fun cd ->
+    let num_move = get_at_coord grd cd in
+    replace_at_coord (replace_at_coord grd cd 0) c0 num_move
+  ) (safe_move_coord c0 m l) 
+
+let np_node_move ({cost=cost; hys=hys; grd=grd}: np_node) (m: e_move) (scoring_node: np_node -> int): np_node option =
+  Option.map (fun (nwgrd: int list list) -> {
+      cost = cost + 1;
       hys = m :: hys;
-      grd = (Option.get nwgrd);
-      score = scoring_node {grd=(Option.get nwgrd); cost=nwcost; hys=[]; score=0};
+      grd = nwgrd;
+      score = scoring_node {grd=nwgrd; cost=cost + 1; hys=[]; score=0};
     }
+  ) (grd_move grd m)
 
 let rec num_to_pos (num: int) (n: int): coord =
   if num == n * n then
@@ -79,7 +122,7 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
 (* TODO *)
 let count_permutation (grd: int list list): int = 0
 
-;;
+(* TODO *)
 let is_solvable (grd: int list list): bool = count_permutation grd mod 2 == 0
 
 let is_resolve (grd: int list list): bool =
@@ -127,8 +170,6 @@ let a_start_solver (scoring_node: np_node -> int) (start: np_node): np_node =
     Hashtbl.add closed (get_grd frst) true
   done;
   start
-
-;;
 
   (* Input *)
 

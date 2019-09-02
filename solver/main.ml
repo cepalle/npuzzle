@@ -12,6 +12,11 @@ type np_node = {
   score: int;
 }
 
+type coord = {
+  x: int;
+  y: int;
+}
+
 let np_node_get_grd ({grd=grd}: np_node) : int list list = grd
 
 (* TODO *)
@@ -29,6 +34,29 @@ let np_node_move {cost=cost; hys=hys; grd=grd} (m: e_move) (scoring_node: np_nod
       grd = (Option.get nwgrd);
       score = scoring_node {grd=(Option.get nwgrd); cost=nwcost; hys=[]; score=0};
     }
+
+(* TODO *)
+let num_to_pos (num: int) (n: int): coord = {x=0;y=0}
+
+(* TODO *)
+let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
+  if x == 0 || y == 0 || x == n - 1 || y == n - 1 then
+    if (n == 0) then
+      0
+    else if (n == 1) then
+      match (x, y) with
+        (0, 0) -> 1
+        | (0, 1) -> 2
+        | (1, 0) -> 0
+        | (1, 1) -> 3
+        | _ -> failwith "pos_to_num unreachable code"
+    else
+      if x == 0 then y
+      else if x == n - 1 then n + y
+      else if y == n - 1 then 3 * n - 2 - x
+      else 4 * n - 3 - y
+  else
+    n * 4 - 4 + (pos_to_num {x = x - 1; y = y - 1} (n - 1))
 
 (* TODO *)
 let is_solvable (grd: int list list): bool = true

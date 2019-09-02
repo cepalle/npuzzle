@@ -110,23 +110,25 @@ let rec num_to_pos (num: int) (n: int): coord =
     else {x=0; y = (n * 4 - 3) - num}
 
 let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
-  if x == 0 || y == 0 || x == n - 1 || y == n - 1 then
-    if (n == 0) then
-      0
-    else if (n == 1) then
-      match (x, y) with
-        (0, 0) -> 1
-        | (0, 1) -> 2
-        | (1, 0) -> 0
-        | (1, 1) -> 3
-        | _ -> failwith "pos_to_num unreachable code"
-    else
-      if x == 0 then y
-      else if x == n - 1 then n + y
-      else if y == n - 1 then 3 * n - 2 - x
-      else 4 * n - 3 - y
+  if coord0 n == {x=x; y=y} then
+    0
+  else if (n <= 1) then
+    0
+  else if (n == 2) then
+    match (x, y) with
+      (0, 0) -> 1
+      | (0, 1) -> 0
+      | (1, 0) -> 2
+      | (1, 1) -> 3
+      | _ -> failwith "pos_to_num unreachable code"
+  
+  else if y == 0 then x + 1
+  else if x == n - 1 then n + y
+  else if y == n - 1 then 3 * n - 2 - x 
+  else if x == 0 then 4 * n - 3 - y 
+  
   else
-    let num_in = pos_to_num {x = x - 1; y = y - 1} (n - 1) in
+    let num_in = pos_to_num {x = x - 1; y = y - 1} (n - 2) in
       if num_in == 0 then
         0
       else
@@ -144,7 +146,7 @@ let gen_coord (n: int): coord list =
       | _ -> append (gen_aux (i - 1) n) (gen_rec n (i - 1))
   in
   List.filter (fun {x=x; y=y} ->
-    y < x
+    y < x && y != 0 && x != 0
   ) (gen_rec n n)
 
 let count_permutation (grd: int list list): int =
@@ -154,14 +156,14 @@ let count_permutation (grd: int list list): int =
       nb + 1
     else
       nb
-  ) 0 (gen_coord n)
+  ) 0 (gen_coord (n * n))
   
 let is_solvable (grd: int list list): bool =
   let {x=x0; y=y0} = find_n grd 0 in
   let {x=xv0; y=yv0} = coord0 (length grd) in
   let nbp = count_permutation grd in
   let dst0 = (abs (x0 - xv0)) + (abs (y0 - yv0)) in
-  (dst0 mod 2) == (nbp mod 2)
+  0 == (nbp mod 2)
 
 let is_resolve (grd: int list list): bool =
   let c = length grd in
@@ -254,8 +256,22 @@ let print_npuzzle (np: int list list): unit =
   (* Main *)
 
 let (np: int list list) = read_npuzzle_input ()
+let n = length np
 let () = print_npuzzle np
+let () = print_newline ()
+let () = print_npuzzle (List.map (fun (line, i) ->
+  List.map (fun (e, j) ->
+    pos_to_num {x=j; y=i} n
+  ) (indexed line)
+) (indexed np))
+let () = print_newline ()
 let () = print_string (string_of_bool (is_solvable np))
 let () = print_newline ()
 let () = print_string (string_of_int (count_permutation np))
 let () = print_newline ()
+let () = print_newline ()
+let () = iter (fun {x=x; y=y} ->
+  print_string ((string_of_int x) ^ " " ^ (string_of_int y));
+  print_newline ()
+) (gen_coord (n * n))
+

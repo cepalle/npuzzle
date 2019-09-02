@@ -73,6 +73,10 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
         n * 4 - 4 + num_in
 
 (* TODO *)
+let count_permutation (grd: int list list): int =
+
+;;
+(* TODO *)
 let is_solvable (grd: int list list): bool = true
 
 let is_resolve (grd: int list list): bool =

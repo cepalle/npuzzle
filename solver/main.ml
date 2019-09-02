@@ -150,7 +150,7 @@ let gen_coord (n: int): coord list =
 let count_permutation (grd: int list list): int =
   let n = length grd in
   fold_left (fun nb {x=a; y=b} ->
-    if pos_to_num (find_n grd a) < pos_to_num (find_n grd b) then
+    if (pos_to_num (find_n grd a) n) < (pos_to_num (find_n grd b) n) then
       nb + 1
     else
       nb
@@ -161,7 +161,7 @@ let is_solvable (grd: int list list): bool =
   let {x=xv0; y=yv0} = coord0 (length grd) in
   let nbp = count_permutation grd in
   let dst0 = (abs (x0 - xv0)) + (abs (y0 - yv0)) in
-  dst0 mod 2 == nbp mod 2
+  (dst0 mod 2) == (nbp mod 2)
 
 let is_resolve (grd: int list list): bool =
   let c = length grd in
@@ -211,8 +211,9 @@ let a_start_solver (scoring_node: np_node -> int) (start: np_node): np_node =
 
   (* Input *)
 
+let del_comment (s: string): string = hd (split_on_char '#' s)
+
 let read_npuzzle_input (): int list list =
-  let del_comment (s: string): string = hd (split_on_char '#' s) in
 
   let parse_line (s: string): int list = filter_map (fun ss -> 
     if (String.length ss) == 0 then
@@ -242,9 +243,9 @@ let read_npuzzle_input (): int list list =
     else
       read_npuzzle_input_rec (Option.get nl) (Option.get nl)
 
-let print_npuzzle (np: int list list) =
-  List.map (fun l ->
-    let _ = List.map (fun e ->
+let print_npuzzle (np: int list list): unit =
+  List.iter (fun l ->
+    let _ = List.iter (fun e ->
       print_string ((string_of_int e) ^ " ")
     ) l in
       print_newline ()
@@ -252,9 +253,9 @@ let print_npuzzle (np: int list list) =
 
   (* Main *)
 
-(* let np = print_npuzzle (read_npuzzle_input ()) *)
-
-let _ = iter (fun {x=x; y=y} -> 
-  let _ = print_string ((string_of_int x) ^ " " ^ (string_of_int y)) in
-  print_newline ()
-) (gen_coord 5)
+let (np: int list list) = read_npuzzle_input ()
+let () = print_npuzzle np
+let () = print_string (string_of_bool (is_solvable np))
+let () = print_newline ()
+let () = print_string (string_of_int (count_permutation np))
+let () = print_newline ()

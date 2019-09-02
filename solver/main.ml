@@ -265,6 +265,12 @@ let () = print_npuzzle (List.map (fun (line, i) ->
   ) (indexed line)
 ) (indexed np))
 let () = print_newline ()
+let () = print_npuzzle (List.map (fun (line, i) ->
+  List.map (fun (e, j) ->
+    pos_to_num (num_to_pos e n) n
+  ) (indexed line)
+) (indexed np))
+let () = print_newline ()
 let () = print_string (string_of_bool (is_solvable np))
 let () = print_newline ()
 let () = print_string (string_of_int (count_permutation np))

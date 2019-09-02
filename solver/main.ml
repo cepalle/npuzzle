@@ -120,7 +120,7 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
       | (0, 1) -> 0
       | (1, 0) -> 2
       | (1, 1) -> 3
-      | _ -> failwith "pos_to_num unreachable code"
+      | _ -> failwith "pos_to_num invalid coord"
   
   else if y == 0 then x + 1
   else if x == n - 1 then n + y

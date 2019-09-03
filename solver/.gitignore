@@ -1,6 +1,5 @@
 .idea/
 *.cmx
-solver
 *.cmi
 *.o
 *.cmo

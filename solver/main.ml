@@ -20,25 +20,29 @@ type coord = {
 let get_grd ({grd=grd}: np_node): int list list = grd
 let get_score ({score=score}: np_node): int = score
 
+let indexed (l: 'a list): ('a * int) list =
+  let rec indexed_rec (l: 'a list) (i: int): ('a * int) list =
+    match l with
+      [] -> []
+      | h :: t -> (h, i) :: (indexed_rec t (i + 1))
+  in
+  indexed_rec l 0
+
+let rec get_at (l: 'a list) (i: int): 'a =
+  match i with
+    0 -> hd l
+    | _ -> get_at (tl l) (i - 1)
+
+let get_at_coord (grd: 'a list list) ({x=x; y=y}: coord): 'a = get_at (get_at grd y) x
+
 let find_n (grd: int list list) (n: int): coord =
-  let (_, c) =
-    fold_left (fun ((b, {x=cx;y=cy}): bool * coord) (line : int list) ->
-      if b then
-        (true, {x=cx; y=cy})
-      else
-        let (bl, {x=cxn; y=cyn}) = fold_left (fun ((b, {x=cxf; y=cyf}): bool * coord) (e : int) ->
-          if e == n then 
-            (true, {x=cxf; y=cyf})
-          else
-            (false, {x = cxf + 1; y = cyf})
-        ) (false, {x = 0; y = cy}) line
-        in
-        if bl then
-          (true, {x=cxn; y=cyn})
-        else
-          (false, {x = 0; y = cyn + 1})
-      ) (false, {x=0; y=0}) grd
-  in c
+  let (l, i) =
+    find (fun (l, i) -> 
+      List.exists (fun e -> e == n) l
+    ) (indexed grd)
+  in
+  let (e, j) = find (fun (e, j) -> e == n) (indexed l) in
+  {y=i; x=j}
 
 let move_coord ({x=x; y=y}: coord) (m: e_move): coord =
   match m with
@@ -54,14 +58,6 @@ let safe_move_coord ({x=x; y=y}: coord) (m: e_move) (n: int): coord option =
   let nwc = move_coord {x=x; y=y} m in
   if is_valide nwc then Some nwc else None
 
-let indexed (l: 'a list): ('a * int) list =
-  let rec indexed_rec (l: 'a list) (i: int): ('a * int) list =
-    match l with
-      [] -> []
-      | h :: t -> (h, i) :: (indexed_rec t (i + 1))
-  in
-  indexed_rec l 0
-
 let replace_at_coord (grd: 'a list list) ({x=x; y=y}: coord) (erpl: 'a): 'a list list =
   List.map (fun (l, i) ->
     List.map (fun (e, j) ->
@@ -69,13 +65,6 @@ let replace_at_coord (grd: 'a list list) ({x=x; y=y}: coord) (erpl: 'a): 'a list
       else e
     ) (indexed l)
   ) (indexed grd)
-
-let rec get_at (l: 'a list) (i: int): 'a =
-  match i with
-    0 -> hd l
-    | _ -> get_at (tl l) (i - 1)
-
-let get_at_coord (grd: 'a list list) ({x=x; y=y}: coord): 'a = get_at (get_at grd y) x
 
 let grd_move (grd: int list list) (m: e_move): int list list option =
   let l = length grd in
@@ -96,11 +85,11 @@ let np_node_move ({cost=cost; hys=hys; grd=grd}: np_node) (m: e_move) (scoring_n
 
 let coord0 (n: int): coord = {x = (n - 1) / 2; y = (n) / 2}
 
-let rec num_to_pos (num: int) (n: int): coord =
+let rec order_to_pos (num: int) (n: int): coord =
   if num == 0 then
     coord0 n
   else if num > n * 4 - 4 then
-    let {x=xb; y=yb} = num_to_pos (num - (n * 4 - 4)) (n - 2) in
+    let {x=xb; y=yb} = order_to_pos (num - (n * 4 - 4)) (n - 2) in
     {x = xb + 1; y = yb + 1}
   else
     if num == 0 then {x=0; y=0}
@@ -109,7 +98,7 @@ let rec num_to_pos (num: int) (n: int): coord =
     else if num <= n * 3 - 2 then {x = (n * 3 - 2) - num; y = n - 1}
     else {x=0; y = (n * 4 - 3) - num}
 
-let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
+let rec pos_to_order ({x=x; y=y}: coord) (n: int): int =
   if coord0 n == {x=x; y=y} then
     0
   else if (n <= 1) then
@@ -128,7 +117,7 @@ let rec pos_to_num ({x=x; y=y}: coord) (n: int): int =
   else if x == 0 then 4 * n - 3 - y 
   
   else
-    let num_in = pos_to_num {x = x - 1; y = y - 1} (n - 2) in
+    let num_in = pos_to_order {x = x - 1; y = y - 1} (n - 2) in
       if num_in == 0 then
         0
       else
@@ -146,23 +135,26 @@ let gen_coord (n: int): coord list =
       | _ -> append (gen_aux (i - 1) n) (gen_rec n (i - 1))
   in
   List.filter (fun {x=x; y=y} ->
-    y < x && y != 0 && x != 0
+    y < x
   ) (gen_rec n n)
 
 let count_permutation (grd: int list list): int =
   let n = length grd in
+  let order_of a = pos_to_order (find_n grd a) n in
   fold_left (fun nb {x=a; y=b} ->
-    if (pos_to_num (find_n grd a) n) < (pos_to_num (find_n grd b) n) then
-      nb + 1
-    else
-      nb
+    let inv = b == 0 in
+    let bl = (order_of a) < (order_of b) in
+    let () = print_string ((string_of_int a) ^ " " ^ (string_of_int b) ^ " " ^ string_of_bool (inv != bl)) in
+    let () = print_newline () in
+    let () = print_string ((string_of_int (order_of a)) ^ " " ^ (string_of_int (order_of b))) in
+    let () = print_newline () in
+    let () = print_newline () in
+    if inv != bl then nb + 1
+    else nb
   ) 0 (gen_coord (n * n))
-  
+
 let is_solvable (grd: int list list): bool =
-  let {x=x0; y=y0} = find_n grd 0 in
-  let {x=xv0; y=yv0} = coord0 (length grd) in
   let nbp = count_permutation grd in
-  let dst0 = (abs (x0 - xv0)) + (abs (y0 - yv0)) in
   0 == (nbp mod 2)
 
 let is_resolve (grd: int list list): bool =
@@ -177,7 +169,7 @@ let is_resolve (grd: int list list): bool =
               if (bfl == false) then
                 (false, 0)
               else
-                (num_to_pos e c != {x=j; y=i}, j + 1)
+                (order_to_pos e c != {x=j; y=i}, j + 1)
             ) (true, 0) line
           in bl
         , i + 1)
@@ -229,13 +221,13 @@ let read_npuzzle_input (): int list list =
     if i == 0 then
       []
     else
-      append [
+      (
         let lnum = parse_line (read_line ()) in
-          if (List.length lnum) != nl then
-            failwith "Bad number of number in a line"
-          else
-            lnum
-      ] (read_npuzzle_input_rec (i - 1) nl)
+        if (List.length lnum) != nl then
+          failwith "Bad number of number in a line"
+        else
+          lnum
+      ) :: (read_npuzzle_input_rec (i - 1) nl)
   in
 
   let _ = read_line () in
@@ -243,7 +235,7 @@ let read_npuzzle_input (): int list list =
     if nl == None then
       failwith "fail to get npuzzle size"
     else
-      read_npuzzle_input_rec (Option.get nl) (Option.get nl)
+      List.rev (read_npuzzle_input_rec (Option.get nl) (Option.get nl))
 
 let print_npuzzle (np: int list list): unit =
   List.iter (fun l ->
@@ -259,19 +251,25 @@ let (np: int list list) = read_npuzzle_input ()
 let n = length np
 let () = print_npuzzle np
 let () = print_newline ()
+(*
 let () = print_npuzzle (List.map (fun (line, i) ->
   List.map (fun (e, j) ->
-    pos_to_num {x=j; y=i} n
+    pos_to_order {x=j; y=i} n
   ) (indexed line)
 ) (indexed np))
 let () = print_newline ()
 let () = print_npuzzle (List.map (fun (line, i) ->
   List.map (fun (e, j) ->
-    pos_to_num (num_to_pos e n) n
+    pos_to_order (order_to_pos e n) n
   ) (indexed line)
 ) (indexed np))
 let () = print_newline ()
-let () = print_string (string_of_bool (is_solvable np))
+*)
+let () = print_npuzzle (List.map (fun (line, i) ->
+  List.map (fun (e, j) ->
+    get_at_coord np (find_n np e)
+  ) (indexed line)
+) (indexed np))
 let () = print_newline ()
 let () = print_string (string_of_int (count_permutation np))
 let () = print_newline ()

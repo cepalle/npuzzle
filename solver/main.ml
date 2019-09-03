@@ -142,20 +142,24 @@ let count_permutation (grd: int list list): int =
   let n = length grd in
   let order_of a = pos_to_order (find_n grd a) n in
   fold_left (fun nb {x=a; y=b} ->
-    let inv = b == 0 in
     let bl = (order_of a) < (order_of b) in
-    let () = print_string ((string_of_int a) ^ " " ^ (string_of_int b) ^ " " ^ string_of_bool (inv != bl)) in
+    (*
+    let () = print_string ((string_of_int a) ^ " " ^ (string_of_int b) ^ " " ^ string_of_bool (bl)) in
     let () = print_newline () in
     let () = print_string ((string_of_int (order_of a)) ^ " " ^ (string_of_int (order_of b))) in
     let () = print_newline () in
     let () = print_newline () in
-    if inv != bl then nb + 1
+    *)
+    if bl then nb + 1
     else nb
   ) 0 (gen_coord (n * n))
 
 let is_solvable (grd: int list list): bool =
   let nbp = count_permutation grd in
-  0 == (nbp mod 2)
+  let {x=x0; y=y0} = find_n grd 0 in
+  let {x=xv0; y=yv0} = coord0 (length grd) in
+  let dst0 = (abs (x0 - xv0)) + (abs (y0 + yv0)) in 
+  dst0 mod 2 == (nbp mod 2)
 
 let is_resolve (grd: int list list): bool =
   let c = length grd in
@@ -264,18 +268,21 @@ let () = print_npuzzle (List.map (fun (line, i) ->
   ) (indexed line)
 ) (indexed np))
 let () = print_newline ()
-*)
 let () = print_npuzzle (List.map (fun (line, i) ->
   List.map (fun (e, j) ->
     get_at_coord np (find_n np e)
   ) (indexed line)
 ) (indexed np))
 let () = print_newline ()
+*)
 let () = print_string (string_of_int (count_permutation np))
 let () = print_newline ()
+let () = print_string (string_of_bool (is_solvable np))
 let () = print_newline ()
+let () = print_newline ()
+(*
 let () = iter (fun {x=x; y=y} ->
   print_string ((string_of_int x) ^ " " ^ (string_of_int y));
   print_newline ()
 ) (gen_coord (n * n))
-
+*)

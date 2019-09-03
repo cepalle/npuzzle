@@ -1,5 +1,5 @@
 all:
-	ocamlc -o solver main.ml
+	ocamlc -o solver np_input.ml np_solver.ml main.ml
 
 re:
 	rm ./solver

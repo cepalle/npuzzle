@@ -31,6 +31,8 @@ let () = print_string (string_of_int (Np_solver.count_permutation np))
 let () = print_newline ()
 let () = print_string (string_of_bool (Np_solver.is_solvable np))
 let () = print_newline ()
+let () = print_string (string_of_int (Np_solver.scoring_grd_manhattan np))
+let () = print_newline ()
 let () = print_newline ()
 (*
 let () = iter (fun {x=x; y=y} ->

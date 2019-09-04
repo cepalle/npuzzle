@@ -110,12 +110,10 @@ let rec pos_to_order ({x=x; y=y}: coord) (n: int): int =
       | (1, 0) -> 2
       | (1, 1) -> 3
       | _ -> failwith "pos_to_num invalid coord"
-  
   else if y == 0 then x + 1
   else if x == n - 1 then n + y
-  else if y == n - 1 then 3 * n - 2 - x 
-  else if x == 0 then 4 * n - 3 - y 
-  
+  else if y == n - 1 then 3 * n - 2 - x
+  else if x == 0 then 4 * n - 3 - y
   else
     let num_in = pos_to_order {x = x - 1; y = y - 1} (n - 2) in
       if num_in == 0 then
@@ -181,7 +179,15 @@ let is_resolve (grd: int list list): bool =
   in bg
 
 (* TODO *)
-let scoring_grd_manhattan (grd: int list list): int = 0
+let scoring_grd_manhattan (grd: int list list): int =
+  let n = length grd in
+  let dist_man {x=x1; y=y1} {x=x2; y=y2} = (abs (x1 - x2)) + (abs (y1 - y2)) in
+  fold_left ( fun s (l, i) ->
+    s + fold_left (fun s (e, j) ->
+    if e == 0 then s
+    else s + (dist_man {x=j; y=i} (order_to_pos e n))
+    ) 0 (indexed l)
+  ) 0 (indexed grd)
 
 let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list =
   match opened with
@@ -194,7 +200,7 @@ let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list
 let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost}: np_node): int =
   w * (scoring_grd grd) + if greedy then 0 else cost
 
-(* TODO max len + nb elements tot    ///  comp grd work in map ? *)
+(* TODO max len + nb elements tot    ///  int list list work in map ? *)
 let a_start_solver (scoring_node: np_node -> int) (start: np_node): np_node =
   let closed = Hashtbl.create (1024 * 1024) in
   let opened = ref ([start]: np_node list) in

@@ -211,6 +211,20 @@ let scoring_grd_manhattan (grd: int list list): int =
     ) 0 (indexed l)
   ) 0 (indexed grd)      
 
+let scoring_grd_manhattan_linear (grd: int list list): int =
+  let n = length grd in
+  let dist_man_linear {x=x1; y=y1} {x=x2; y=y2} = 
+    let dst = (abs (x1 - x2)) + (abs (y1 - y2)) in
+    let sc = dst + if x1 == x2 || y1 == y2 then 0 else -1 in
+    if sc < 0 then 0 else sc
+  in
+  fold_left ( fun s (l, i) ->
+    s + fold_left (fun s (e, j) ->
+    if e == 0 then s
+    else s + (dist_man_linear {x=j; y=i} (order_to_pos e n))
+    ) 0 (indexed l)
+  ) 0 (indexed grd)      
+
 let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list =
   match opened with
     [] -> [to_add]

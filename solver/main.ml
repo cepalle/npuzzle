@@ -4,10 +4,14 @@ open List
   (* Main *)
 
 let (grd: int list list) = Np_input.read_npuzzle_input ()
-let n = length grd
 let () = Np_input.print_npuzzle grd
 let () = print_newline ()
+let n = length grd
+let node = Np_solver.a_star_solver (Np_solver.scoring_node Np_solver.scoring_grd_manhattan 1 false) grd
+
 (*
+let () = Np_input.print_npuzzle grd
+let () = print_newline ()
 let () = print_npuzzle (List.map (fun (line, i) ->
   List.map (fun (e, j) ->
     pos_to_order {x=j; y=i} n
@@ -26,7 +30,7 @@ let () = print_npuzzle (List.map (fun (line, i) ->
   ) (indexed line)
 ) (indexed np))
 let () = print_newline ()
-*)
+
 let () = print_string (string_of_int (Np_solver.count_permutation grd))
 let () = print_newline ()
 let () = print_string (string_of_bool (Np_solver.is_solvable grd))
@@ -36,13 +40,13 @@ let () = print_newline ()
 let () = print_string (string_of_int (Np_solver.scoring_grd_manhattan grd))
 let () = print_newline ()
 let () = print_newline ()
-let node = Np_solver.a_start_solver (Np_solver.scoring_node Np_solver.scoring_grd_manhattan 1 false) grd
 
 let () = print_newline ()
 let () = print_newline ()
+*)
 
-let _ = Option.map Np_solver.np_print_node node
-let () = print_newline ()
+let _ = Option.map Np_solver.np_print_a_star_res node
+
 (*
 let () = iter (fun {x=x; y=y} ->
   print_string ((string_of_int x) ^ " " ^ (string_of_int y));

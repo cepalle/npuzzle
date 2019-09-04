@@ -23,6 +23,12 @@ type coord = {
   y: int;
 }
 
+type a_star_res = {
+  node: np_node;
+  max_nb_opened: int;
+  nb_closed: int;
+}
+
 let get_grd ({grd=grd}: np_node): int list list = grd
 let get_score ({score=score}: np_node): int = score
 
@@ -201,14 +207,18 @@ let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list
 let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost}: np_node): int =
   w * (scoring_grd grd) + if greedy then 0 else cost
 
-let np_print_node ({cost=cost; hys=hys; grd=grd}: np_node): unit =
-  let () = print_string ("cost = " ^ (string_of_int cost) ^ " " ^ (string_of_int (length hys))) in
-  let () = print_newline () in
+let np_print_a_star_res ({node={cost=cost; hys=hys; grd=grd}; max_nb_opened=mo; nb_closed=nc}: a_star_res): unit =
+let () = print_string ("max open = " ^ (string_of_int mo)) in
+let () = print_newline () in
+let () = print_string ("closed = " ^ (string_of_int nc)) in
+let () = print_newline () in
+let () = print_string ("nb transition = " ^ (string_of_int cost) ^ " " ^ (string_of_int (length hys))) in
+let () = print_newline () in
+let () = print_newline () in
   iter (fun m ->
     let () = print_string (to_string m) in
     print_newline ()
-  ) hys;
-  Np_input.print_npuzzle grd
+  ) (rev hys)
 
 let rec make_grd_key (grd: int list list): string =
   let rec make_line_key (l: int list): string =
@@ -220,8 +230,10 @@ let rec make_grd_key (grd: int list list): string =
     [] -> ""
     | h::t -> (make_line_key h) ^ (make_grd_key t)
 
-  (* TODO max len + nb elements tot  ///  int list list work in map ? *)
-let a_start_solver (scoring_node: np_node -> int) (grd: int list list): np_node option =
+
+
+  (* TODO max len opened + nb elements tot (closed + opened) *)
+let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_res option =
   if not (is_solvable grd) then None
   else Some ( 
     let closed = Hashtbl.create (1024 * 1024) in
@@ -232,12 +244,14 @@ let a_start_solver (scoring_node: np_node -> int) (grd: int list list): np_node 
       score=scoring_node {cost=0; hys=[]; grd=grd; score=0}
     } in
     let opened = ref ([start]: np_node list) in
+    let max_opened = ref 1 in
     while !opened != [] && not (is_resolve (get_grd (hd !opened))) do
       let (frst: np_node) = hd !opened in
       let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
       let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (make_grd_key (get_grd frst))) == None) neighbours in
       opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
-
+      max_opened := max !max_opened (length !opened);
+      
       (*
       let () = Np_input.print_npuzzle (get_grd frst) in
       let () = print_string (make_grd_key (get_grd frst)) in
@@ -255,6 +269,9 @@ let a_start_solver (scoring_node: np_node -> int) (grd: int list list): np_node 
     done;
     if !opened == [] then
       failwith "faild to resolve"
-    else
-      hd !opened
+    else {
+      max_nb_opened = !max_opened;
+      node = hd !opened;
+      nb_closed = Hashtbl.length closed
+    }
   )

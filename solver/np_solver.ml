@@ -199,11 +199,17 @@ let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list
 let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost}: np_node): int =
   w * (scoring_grd grd) + if greedy then 0 else cost
 
-(* TODO max len + nb elements tot    ///  int list list work in map ? *)
-let a_start_solver (scoring_node: np_node -> int) (start: np_node): np_node =
+(* TODO max len + nb elements tot  ///  int list list work in map ? *)
+let a_start_solver (scoring_node: np_node -> int) (grd: int list list): np_node =
   let closed = Hashtbl.create (1024 * 1024) in
+  let start = {
+    cost=0;
+    hys=[];
+    grd=grd;
+    score=scoring_node {cost=0; hys=[]; grd=grd; score=0}
+  } in
   let opened = ref ([start]: np_node list) in
-  while List.exists (fun e -> true) !opened && not (is_resolve (get_grd (hd !opened))) do
+  while !opened == [] && not (is_resolve (get_grd (hd !opened))) do
     let (frst: np_node) = hd !opened in
     let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
     let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (get_grd frst)) == None) neighbours in

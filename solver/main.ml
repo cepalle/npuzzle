@@ -3,9 +3,9 @@ open List
 
   (* Main *)
 
-let (np: int list list) = Np_input.read_npuzzle_input ()
-let n = length np
-let () = Np_input.print_npuzzle np
+let (grd: int list list) = Np_input.read_npuzzle_input ()
+let n = length grd
+let () = Np_input.print_npuzzle grd
 let () = print_newline ()
 (*
 let () = print_npuzzle (List.map (fun (line, i) ->
@@ -27,12 +27,13 @@ let () = print_npuzzle (List.map (fun (line, i) ->
 ) (indexed np))
 let () = print_newline ()
 *)
-let () = print_string (string_of_int (Np_solver.count_permutation np))
+let () = print_string (string_of_int (Np_solver.count_permutation grd))
 let () = print_newline ()
-let () = print_string (string_of_bool (Np_solver.is_solvable np))
+let () = print_string (string_of_bool (Np_solver.is_solvable grd))
 let () = print_newline ()
-let () = print_string (string_of_int (Np_solver.scoring_grd_manhattan np))
+let () = print_string (string_of_int (Np_solver.scoring_grd_manhattan grd))
 let () = print_newline ()
+let node = Np_solver.a_start_solver (Np_solver.scoring_node Np_solver.scoring_grd_manhattan 1 false) grd
 let () = print_newline ()
 (*
 let () = iter (fun {x=x; y=y} ->

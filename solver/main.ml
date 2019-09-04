@@ -1,7 +1,14 @@
 open String
 open List
+open Printf
 
   (* Main *)
+
+let () =
+  for i = 0 to Array.length Sys.argv - 1 do
+    printf "[%i] %s\n" i Sys.argv.(i)
+  done
+let () = print_newline ()
 
 let (grd: int list list) = Np_input.read_npuzzle_input ()
 let n = length grd

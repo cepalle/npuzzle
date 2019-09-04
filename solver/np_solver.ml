@@ -186,42 +186,23 @@ let is_resolve (grd: int list list): bool =
   in
   check_grd grd 0
 
-let scoring_grd_euclidean (grd: int list list): int =
-  let n = length grd in
-  let dist_euc {x=x1; y=y1} {x=x2; y=y2} = int_of_float (sqrt (
-      ((float_of_int (abs (x1 - x2))) ** 2.0)
-     +.
-     ((float_of_int (abs (y1 - y2))) ** 2.0)
-  ))
-  in
-  fold_left ( fun s (l, i) ->
-    s + fold_left (fun s (e, j) ->
-    if e == 0 then s
-    else s + (dist_euc {x=j; y=i} (order_to_pos e n))
-    ) 0 (indexed l)
-  ) 0 (indexed grd)
+let dist_hamming {x=x1; y=y1} {x=x2; y=y2} = 
+  if x1 == x2 && y1 == y2 then 0 else 1
 
-let scoring_grd_manhattan (grd: int list list): int =
-  let n = length grd in
-  let dist_man {x=x1; y=y1} {x=x2; y=y2} = (abs (x1 - x2)) + (abs (y1 - y2)) in
-  fold_left ( fun s (l, i) ->
-    s + fold_left (fun s (e, j) ->
-    if e == 0 then s
-    else s + (dist_man {x=j; y=i} (order_to_pos e n))
-    ) 0 (indexed l)
-  ) 0 (indexed grd)      
+let dist_euclidean {x=x1; y=y1} {x=x2; y=y2} = int_of_float (sqrt (
+    ((float_of_int (abs (x1 - x2))) ** 2.0)
+   +.
+   ((float_of_int (abs (y1 - y2))) ** 2.0)
+))
 
-let scoring_grd_manhattan_linear (grd: int list list): int =
+let dist_manhattan {x=x1; y=y1} {x=x2; y=y2} = (abs (x1 - x2)) + (abs (y1 - y2))
+
+let scoring_grd_dst (dist: coord -> coord -> int) (grd: int list list): int =
   let n = length grd in
-  let dist_man_linear {x=x1; y=y1} {x=x2; y=y2} = 
-    let dst = (abs (x1 - x2)) + (abs (y1 - y2)) in
-    let sc = dst + if x1 == x2 || y1 == y2 then 0 else -1 in
-    if sc < 0 then 0 else sc
-  in
   fold_left ( fun s (l, i) ->
     s + fold_left (fun s (e, j) ->
     if e == 0 then s
-    else s + (dist_man_linear {x=j; y=i} (order_to_pos e n))
+    else s + (dist {x=j; y=i} (order_to_pos e n))
     ) 0 (indexed l)
   ) 0 (indexed grd)      
 

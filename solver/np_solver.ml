@@ -230,13 +230,11 @@ let rec make_grd_key (grd: int list list): string =
     [] -> ""
     | h::t -> (make_line_key h) ^ (make_grd_key t)
 
-
-
   (* TODO max len opened + nb elements tot (closed + opened) *)
 let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_res option =
   if not (is_solvable grd) then None
   else Some ( 
-    let closed = Hashtbl.create (1024 * 1024) in
+    let closed = Hashtbl.create (1024 * 1024 * 16) in
     let (start: np_node) = {
       cost=0;
       hys=[];

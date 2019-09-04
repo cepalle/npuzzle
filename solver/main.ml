@@ -4,9 +4,11 @@ open List
   (* Main *)
 
 let (grd: int list list) = Np_input.read_npuzzle_input ()
+let n = length grd
+let () = print_int n
+let () = print_newline ()
 let () = Np_input.print_npuzzle grd
 let () = print_newline ()
-let n = length grd
 let node = Np_solver.a_star_solver (Np_solver.scoring_node Np_solver.scoring_grd_manhattan 1 false) grd
 
 (*

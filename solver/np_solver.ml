@@ -178,7 +178,6 @@ let is_resolve (grd: int list list): bool =
     ) (true, 0) grd
   in bg
 
-(* TODO *)
 let scoring_grd_manhattan (grd: int list list): int =
   let n = length grd in
   let dist_man {x=x1; y=y1} {x=x2; y=y2} = (abs (x1 - x2)) + (abs (y1 - y2)) in
@@ -192,7 +191,7 @@ let scoring_grd_manhattan (grd: int list list): int =
 let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list =
   match opened with
     [] -> [to_add]
-    | h::t -> if get_score to_add > get_score h then
+    | h::t -> if get_score to_add <= get_score h then
                 to_add::opened
               else
                 h::(add_in_prio_queu t to_add)

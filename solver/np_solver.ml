@@ -186,6 +186,21 @@ let is_resolve (grd: int list list): bool =
   in
   check_grd grd 0
 
+let scoring_grd_euclidean (grd: int list list): int =
+  let n = length grd in
+  let dist_euc {x=x1; y=y1} {x=x2; y=y2} = int_of_float (sqrt (
+      ((float_of_int (abs (x1 - x2))) ** 2.0)
+     +.
+     ((float_of_int (abs (y1 - y2))) ** 2.0)
+  ))
+  in
+  fold_left ( fun s (l, i) ->
+    s + fold_left (fun s (e, j) ->
+    if e == 0 then s
+    else s + (dist_euc {x=j; y=i} (order_to_pos e n))
+    ) 0 (indexed l)
+  ) 0 (indexed grd)
+
 let scoring_grd_manhattan (grd: int list list): int =
   let n = length grd in
   let dist_man {x=x1; y=y1} {x=x2; y=y2} = (abs (x1 - x2)) + (abs (y1 - y2)) in
@@ -194,7 +209,7 @@ let scoring_grd_manhattan (grd: int list list): int =
     if e == 0 then s
     else s + (dist_man {x=j; y=i} (order_to_pos e n))
     ) 0 (indexed l)
-  ) 0 (indexed grd)
+  ) 0 (indexed grd)      
 
 let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list =
   match opened with
@@ -230,7 +245,6 @@ let rec make_grd_key (grd: int list list): string =
     [] -> ""
     | h::t -> (make_line_key h) ^ (make_grd_key t)
 
-  (* TODO max len opened + nb elements tot (closed + opened) *)
 let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_res option =
   if not (is_solvable grd) then None
   else Some ( 

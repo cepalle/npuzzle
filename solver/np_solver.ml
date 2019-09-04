@@ -166,23 +166,15 @@ let is_solvable (grd: int list list): bool =
   dst0 mod 2 == (nbp mod 2)
 
 let is_resolve (grd: int list list): bool =
-  let c = length grd in
-  let (bg, _) : bool * int =
-    fold_left (fun ((bfg, i): bool * int) (line : int list) ->
-      if (bfg == false) then
-        (false, 0)
-      else
-        (
-          let (bl, _) = fold_left (fun ((bfl, j): bool * int) (e: int) -> 
-              if (bfl == false) then
-                (false, 0)
-              else
-                (order_to_pos e c != {x=j; y=i}, j + 1)
-            ) (true, 0) line
-          in bl
-        , i + 1)
-    ) (true, 0) grd
-  in bg
+  let n = length grd in
+  let check_line (y: int) (l: int list) (i: int) (acc: bool): bool =
+    if not acc then
+      false
+    else if l == [] then
+      true
+    else
+
+;;
 
 let scoring_grd_manhattan (grd: int list list): int =
   let n = length grd in

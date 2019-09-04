@@ -167,14 +167,18 @@ let is_solvable (grd: int list list): bool =
 
 let is_resolve (grd: int list list): bool =
   let n = length grd in
-  let check_line (y: int) (l: int list) (i: int) (acc: bool): bool =
-    if not acc then
-      false
-    else if l == [] then
-      true
-    else
-
-;;
+  let rec check_line (y: int) (l: int list) (i: int): bool =
+    match l with
+      [] -> true
+      | h::t -> let {x=xv; y=yv} = order_to_pos h n in
+                (xv == i && yv == y) && (check_line y t (i + 1))
+  in
+  let rec check_grd (grd: int list list) (j: int): bool =
+    match grd with
+      [] -> true
+      | h::t -> (check_line j h 0) && (check_grd t (j + 1))  
+  in
+  check_grd grd 0
 
 let scoring_grd_manhattan (grd: int list list): int =
   let n = length grd in
@@ -199,6 +203,7 @@ let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({g
 
 let np_print_node ({cost=cost; hys=hys}: np_node): unit =
   let () = print_string ("cost = " ^ (string_of_int cost) ^ " " ^ (string_of_int (length hys))) in
+  let () = print_newline () in
   iter (fun m ->
     let () = print_string (to_string m) in
     print_newline ()

@@ -41,7 +41,7 @@ let node = Np_solver.a_start_solver (Np_solver.scoring_node Np_solver.scoring_gr
 let () = print_newline ()
 let () = print_newline ()
 
-let () = Np_solver.np_print_node node
+let _ = Option.map Np_solver.np_print_node node
 let () = print_newline ()
 (*
 let () = iter (fun {x=x; y=y} ->

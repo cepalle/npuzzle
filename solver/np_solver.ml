@@ -52,14 +52,14 @@ let find_n (grd: int list list) (n: int): coord =
 
 let move_coord ({x=x; y=y}: coord) (m: e_move): coord =
   match m with
-      Up -> {x = x; y = y + 1}
-      | Down -> {x = x; y = y - 1}
+      Up -> {x = x; y = y - 1}
+      | Down -> {x = x; y = y + 1}
       | Right -> {x = x + 1; y = y}
       | Left -> {x = x - 1; y = y}
       
 let safe_move_coord ({x=x; y=y}: coord) (m: e_move) (n: int): coord option =
   let is_valide ({x=x; y=y}: coord) =
-    x > 0 && y > 0 && x < n && y < n
+    x >= 0 && y >= 0 && x < n && y < n
   in
   let nwc = move_coord {x=x; y=y} m in
   if is_valide nwc then Some nwc else None
@@ -201,38 +201,60 @@ let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list
 let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost}: np_node): int =
   w * (scoring_grd grd) + if greedy then 0 else cost
 
-let np_print_node ({cost=cost; hys=hys}: np_node): unit =
+let np_print_node ({cost=cost; hys=hys; grd=grd}: np_node): unit =
   let () = print_string ("cost = " ^ (string_of_int cost) ^ " " ^ (string_of_int (length hys))) in
   let () = print_newline () in
   iter (fun m ->
     let () = print_string (to_string m) in
     print_newline ()
-  ) hys
+  ) hys;
+  Np_input.print_npuzzle grd
+
+let rec make_grd_key (grd: int list list): string =
+  let rec make_line_key (l: int list): string =
+    match l with
+      [] -> ""
+      | h::t -> (string_of_int h) ^ " " ^ (make_line_key t)
+  in
+  match grd with
+    [] -> ""
+    | h::t -> (make_line_key h) ^ (make_grd_key t)
 
   (* TODO max len + nb elements tot  ///  int list list work in map ? *)
-let a_start_solver (scoring_node: np_node -> int) (grd: int list list): np_node =
-  let closed = Hashtbl.create (1024 * 1024) in
-  let (start: np_node) = {
-    cost=0;
-    hys=[];
-    grd=grd;
-    score=scoring_node {cost=0; hys=[]; grd=grd; score=0}
-  } in
-  let opened = ref ([start]: np_node list) in
-  while !opened != [] && not (is_resolve (get_grd (hd !opened))) do
-    let (frst: np_node) = hd !opened in
+let a_start_solver (scoring_node: np_node -> int) (grd: int list list): np_node option =
+  if not (is_solvable grd) then None
+  else Some ( 
+    let closed = Hashtbl.create (1024 * 1024) in
+    let (start: np_node) = {
+      cost=0;
+      hys=[];
+      grd=grd;
+      score=scoring_node {cost=0; hys=[]; grd=grd; score=0}
+    } in
+    let opened = ref ([start]: np_node list) in
+    while !opened != [] && not (is_resolve (get_grd (hd !opened))) do
+      let (frst: np_node) = hd !opened in
+      let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
+      let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (make_grd_key (get_grd frst))) == None) neighbours in
+      opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
 
-    let () = print_string "ici" in
-    let () = print_newline () in
-    let () = Np_input.print_npuzzle (get_grd frst) in
-    let () = print_newline () in
-    
-    let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
-    let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (get_grd frst)) == None) neighbours in
-    opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
-    Hashtbl.add closed (get_grd frst) true
-  done;
-  if is_resolve (get_grd (hd !opened)) then
-    hd !opened
-  else
-    start
+      (*
+      let () = Np_input.print_npuzzle (get_grd frst) in
+      let () = print_string (make_grd_key (get_grd frst)) in
+      let () = print_newline () in
+      let () = print_int (length !opened) in
+      let () = print_newline () in
+      let () = print_int (length neighbours) in
+      let () = print_newline () in
+      let () = print_int (length neighbours_not_in_closed) in
+      let () = print_newline () in
+      let () = print_newline () in
+      *)
+
+      Hashtbl.add closed (make_grd_key (get_grd frst)) true
+    done;
+    if !opened == [] then
+      failwith "faild to resolve"
+    else
+      hd !opened
+  )

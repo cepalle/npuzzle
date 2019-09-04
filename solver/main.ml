@@ -34,6 +34,11 @@ let () = print_newline ()
 let () = print_string (string_of_int (Np_solver.scoring_grd_manhattan grd))
 let () = print_newline ()
 let node = Np_solver.a_start_solver (Np_solver.scoring_node Np_solver.scoring_grd_manhattan 1 false) grd
+
+let () = print_newline ()
+let () = print_newline ()
+
+let () = Np_solver.np_print_node node
 let () = print_newline ()
 (*
 let () = iter (fun {x=x; y=y} ->

@@ -5,6 +5,12 @@ type e_move = Up | Down | Right | Left
 
 let e_moves = Up::Down::Right::Left::[]
 
+let to_string (m: e_move) = match m with
+  Up -> "Up"
+  | Down -> "Down"
+  | Right -> "Right"
+  | Left -> "Left"
+
 type np_node = {
   cost: int;
   hys: e_move list;
@@ -199,21 +205,37 @@ let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list
 let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost}: np_node): int =
   w * (scoring_grd grd) + if greedy then 0 else cost
 
-(* TODO max len + nb elements tot  ///  int list list work in map ? *)
+let np_print_node ({cost=cost; hys=hys}: np_node): unit =
+  let () = print_string ("cost = " ^ (string_of_int cost) ^ " " ^ (string_of_int (length hys))) in
+  iter (fun m ->
+    let () = print_string (to_string m) in
+    print_newline ()
+  ) hys
+
+  (* TODO max len + nb elements tot  ///  int list list work in map ? *)
 let a_start_solver (scoring_node: np_node -> int) (grd: int list list): np_node =
   let closed = Hashtbl.create (1024 * 1024) in
-  let start = {
+  let (start: np_node) = {
     cost=0;
     hys=[];
     grd=grd;
     score=scoring_node {cost=0; hys=[]; grd=grd; score=0}
   } in
   let opened = ref ([start]: np_node list) in
-  while !opened == [] && not (is_resolve (get_grd (hd !opened))) do
+  while !opened != [] && not (is_resolve (get_grd (hd !opened))) do
     let (frst: np_node) = hd !opened in
+
+    let () = print_string "ici" in
+    let () = print_newline () in
+    let () = Np_input.print_npuzzle (get_grd frst) in
+    let () = print_newline () in
+    
     let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
     let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (get_grd frst)) == None) neighbours in
     opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
     Hashtbl.add closed (get_grd frst) true
   done;
-  start
+  if is_resolve (get_grd (hd !opened)) then
+    hd !opened
+  else
+    start

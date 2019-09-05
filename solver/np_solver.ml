@@ -1,4 +1,3 @@
-open String
 open List
 
 type e_move = Up | Down | Right | Left
@@ -29,8 +28,8 @@ type a_star_res = {
   nb_closed: int;
 }
 
-let get_grd ({grd=grd}: np_node): int list list = grd
-let get_score ({score=score}: np_node): int = score
+let get_grd ({grd=grd; _}: np_node): int list list = grd
+let get_score ({score=score; _}: np_node): int = score
 
 let indexed (l: 'a list): ('a * int) list =
   let rec indexed_rec (l: 'a list) (i: int): ('a * int) list =
@@ -49,11 +48,11 @@ let get_at_coord (grd: 'a list list) ({x=x; y=y}: coord): 'a = get_at (get_at gr
 
 let find_n (grd: int list list) (n: int): coord =
   let (l, i) =
-    find (fun (l, i) -> 
+    find (fun (l, _) -> 
       List.exists (fun e -> e == n) l
     ) (indexed grd)
   in
-  let (e, j) = find (fun (e, j) -> e == n) (indexed l) in
+  let (_, j) = find (fun (e, _) -> e == n) (indexed l) in
   {y=i; x=j}
 
 let move_coord ({x=x; y=y}: coord) (m: e_move): coord =
@@ -86,7 +85,7 @@ let grd_move (grd: int list list) (m: e_move): int list list option =
     replace_at_coord (replace_at_coord grd cd 0) c0 num_move
   ) (safe_move_coord c0 m l) 
 
-let np_node_move ({cost=cost; hys=hys; grd=grd}: np_node) (m: e_move) (scoring_node: np_node -> int): np_node option =
+let np_node_move ({cost=cost; hys=hys; grd=grd; _}: np_node) (m: e_move) (scoring_node: np_node -> int): np_node option =
   Option.map (fun (nwgrd: int list list) -> {
       cost = cost + 1;
       hys = m :: hys;
@@ -209,10 +208,10 @@ let rec add_in_prio_queu (opened: np_node list) (to_add: np_node) : np_node list
               else
                 h::(add_in_prio_queu t to_add)
 
-let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost}: np_node): int =
+let scoring_node (scoring_grd: int list list -> int) (w: int) (greedy: bool) ({grd=grd; cost=cost; _}: np_node): int =
   w * (scoring_grd grd) + if greedy then 0 else cost
 
-let np_print_a_star_res ({node={cost=cost; hys=hys; grd=grd}; max_nb_opened=mo; nb_closed=nc}: a_star_res): unit =
+let np_print_a_star_res ({node={cost=cost; hys=hys; _}; max_nb_opened=mo; nb_closed=nc}: a_star_res): unit =
 let () = print_string ("max open = " ^ (string_of_int mo)) in
 let () = print_newline () in
 let () = print_string ("closed = " ^ (string_of_int nc)) in
@@ -238,7 +237,7 @@ let rec make_grd_key (grd: int list list): string =
 let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_res option =
   if not (is_solvable grd) then None
   else Some ( 
-    let closed = Hashtbl.create (1024 * 1024 * 16) in
+    let closed = Hashtbl.create (1024 * 1024) in
     let (start: np_node) = {
       cost=0;
       hys=[];
@@ -250,7 +249,7 @@ let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_re
     while !opened != [] && not (is_resolve (get_grd (hd !opened))) do
       let (frst: np_node) = hd !opened in
       let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
-      let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (make_grd_key (get_grd frst))) == None) neighbours in
+      let neighbours_not_in_closed = List.filter (fun n -> (Hashtbl.find_opt closed (make_grd_key (get_grd n))) == None) neighbours in
       opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
       max_opened := max !max_opened (length !opened);
       Hashtbl.add closed (make_grd_key (get_grd frst)) true

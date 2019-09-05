@@ -153,13 +153,6 @@ let count_permutation (grd: int list list): int =
   let order_of a = pos_to_order (find_n grd a) n in
   fold_left (fun nb {x=a; y=b} ->
     let bl = (order_of a) < (order_of b) in
-    (*
-    let () = print_string ((string_of_int a) ^ " " ^ (string_of_int b) ^ " " ^ string_of_bool (bl)) in
-    let () = print_newline () in
-    let () = print_string ((string_of_int (order_of a)) ^ " " ^ (string_of_int (order_of b))) in
-    let () = print_newline () in
-    let () = print_newline () in
-    *)
     if bl then nb + 1
     else nb
   ) 0 (gen_coord (n * n))
@@ -188,6 +181,8 @@ let is_resolve (grd: int list list): bool =
 
 let dist_hamming {x=x1; y=y1} {x=x2; y=y2} = 
   if x1 == x2 && y1 == y2 then 0 else 1
+
+let dist_chebyshev {x=x1; y=y1} {x=x2; y=y2} = max (abs (x1 - x2)) (abs (y1 - y2))
 
 let dist_euclidean {x=x1; y=y1} {x=x2; y=y2} = int_of_float (sqrt (
     ((float_of_int (abs (x1 - x2))) ** 2.0)
@@ -258,20 +253,6 @@ let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_re
       let neighbours_not_in_closed = List.filter (fun e -> (Hashtbl.find_opt closed (make_grd_key (get_grd frst))) == None) neighbours in
       opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
       max_opened := max !max_opened (length !opened);
-      
-      (*
-      let () = Np_input.print_npuzzle (get_grd frst) in
-      let () = print_string (make_grd_key (get_grd frst)) in
-      let () = print_newline () in
-      let () = print_int (length !opened) in
-      let () = print_newline () in
-      let () = print_int (length neighbours) in
-      let () = print_newline () in
-      let () = print_int (length neighbours_not_in_closed) in
-      let () = print_newline () in
-      let () = print_newline () in
-      *)
-
       Hashtbl.add closed (make_grd_key (get_grd frst)) true
     done;
     if !opened == [] then

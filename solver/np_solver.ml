@@ -249,7 +249,7 @@ let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_re
     while !opened != [] && not (is_resolve (get_grd (hd !opened))) do
       let (frst: np_node) = hd !opened in
       let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
-      let neighbours_not_in_closed = List.filter (fun n -> (Hashtbl.find_opt closed (make_grd_key (get_grd n))) == None) neighbours in
+      let (neighbours_not_in_closed: np_node list) = List.filter (fun n -> (Hashtbl.find_opt closed (make_grd_key (get_grd n))) == None) neighbours in
       opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
       max_opened := max !max_opened (length !opened);
       Hashtbl.add closed (make_grd_key (get_grd frst)) true

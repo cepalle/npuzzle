@@ -3,7 +3,7 @@
 in solver/
 
 ```cmd
-make
+dune build solver.exe
 ```
 
 # Use
@@ -17,5 +17,5 @@ make
 
 example:
 ```cmd
-python Puzzle_generator.py -s 4 | ./solver/solver -dc -w 5
+python Puzzle_generator.py -s 4 | ./solver/_build/default/solver.exe -dc -w 5
 ```

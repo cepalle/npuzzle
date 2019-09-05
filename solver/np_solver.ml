@@ -234,6 +234,52 @@ let rec make_grd_key (grd: int list list): string =
     [] -> ""
     | h::t -> (make_line_key h) ^ (make_grd_key t)
 
+
+let left_child i = 2 * i + 1
+let right_child i = 2 * i + 2
+let parent i = (i - 1) / 2
+
+class heap =
+    object
+      val mutable arr = Array.make (1024 * 1024) {cost=0; hys=[]; grd=[]; score=0}
+      val mutable len = 1024 * 1024
+      val mutable nb_el = 0
+
+      method add (e: np_node): unit =
+        (* check len + check order *)
+        let () = Array.set arr nb_el e in
+        let i = ref nb_el in
+        nb_el <- nb_el + 1;
+        while (get_score arr.(parent !i)) < (get_score e) do
+          let el = arr.(parent !i) in
+          let () = Array.set arr !i el in
+          let () = Array.set arr (parent !i) e in
+          i := parent !i
+        done;
+      method pop (): np_node =
+          let res = arr.(0) in
+          let last = arr.(nb_el - 1) in
+          nb_el <- nb_el - 1;
+          let () = Array.set arr 0 last in 
+          let i = ref 0 in
+          while (left_child !i < nb_el && (get_score arr.(left_child !i) < (get_score last))) ||
+                (right_child !i < nb_el && (get_score arr.(right_child !i) < (get_score last))) do
+            if (left_child !i < nb_el && (get_score arr.(left_child !i) < (get_score last))) then
+              let el = arr.(left_child !i) in
+              let () = Array.set arr !i el in
+              let () = Array.set arr (left_child !i) last in
+              i := left_child !i
+            else
+              let el = arr.(right_child !i) in
+              let () = Array.set arr !i el in
+              let () = Array.set arr (right_child !i) last in
+              i := right_child !i        
+          done;
+          res
+      method size (): int = nb_el
+      method min (): np_node = arr.(0)
+    end
+
 let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_res option =
   if not (is_solvable grd) then None
   else Some ( 
@@ -244,21 +290,22 @@ let a_star_solver (scoring_node: np_node -> int) (grd: int list list): a_star_re
       grd=grd;
       score=scoring_node {cost=0; hys=[]; grd=grd; score=0}
     } in
-    let opened = ref ([start]: np_node list) in
+    let opened = new heap in
+    let () = opened#add start in
     let max_opened = ref 1 in
-    while !opened != [] && not (is_resolve (get_grd (hd !opened))) do
-      let (frst: np_node) = hd !opened in
+    while opened#size () != 0 && not (is_resolve (get_grd (opened#min ()))) do
+      let (frst: np_node) = opened#pop () in
       let (neighbours: np_node list) = List.filter_map (fun m -> np_node_move frst m scoring_node) e_moves in
       let (neighbours_not_in_closed: np_node list) = List.filter (fun n -> (Hashtbl.find_opt closed (make_grd_key (get_grd n))) == None) neighbours in
-      opened := fold_left add_in_prio_queu (tl !opened) neighbours_not_in_closed;
-      max_opened := max !max_opened (length !opened);
+      iter (fun n -> opened#add n) neighbours_not_in_closed;
+      max_opened := max !max_opened (opened#size ());
       Hashtbl.add closed (make_grd_key (get_grd frst)) true
     done;
-    if !opened == [] then
+    if opened#size () == 0 then
       failwith "faild to resolve"
     else {
       max_nb_opened = !max_opened;
-      node = hd !opened;
+      node = opened#min ();
       nb_closed = Hashtbl.length closed
     }
   )

@@ -52,3 +52,6 @@ let () = print_newline ()
 
 let node = Np_solver.a_star_solver scoring grd
 let _ = Option.map Np_solver.np_print_a_star_res node
+let () = if node == None then
+  let () = print_string "unsolvable" in
+  print_newline ()

@@ -251,7 +251,7 @@ class heap =
         let () = Array.set arr nb_el e in
         let i = ref nb_el in
         nb_el <- nb_el + 1;
-        while (get_score arr.(parent !i)) < (get_score e) do
+        while (get_score arr.(parent !i)) > (get_score e) do
           let el = arr.(parent !i) in
           let () = Array.set arr !i el in
           let () = Array.set arr (parent !i) e in

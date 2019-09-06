@@ -1,3 +1,9 @@
+# Dependency
+
+- ocaml
+- opam
+- dune: `opam install dune`
+
 # Build
 
 in solver/

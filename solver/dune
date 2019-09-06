@@ -1,3 +1,2 @@
 (executable
- (name solver)
- (libraries core))
+ (name solver))

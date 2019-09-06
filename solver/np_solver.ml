@@ -246,8 +246,10 @@ class heap =
       val mutable nb_el = 0
 
       method add (e: np_node): unit =
-        if nb_el == len then
-          arr <- Array.append arr (Array.make (1024 * 1024) {cost=0; hys=[]; grd=[]; score=0});
+        if nb_el == len then (
+          arr <- Array.append arr (Array.make (len * 2) {cost=0; hys=[]; grd=[]; score=0});
+          len <- len + len * 2;
+        );
         let () = Array.set arr nb_el e in
         let i = ref nb_el in
         nb_el <- nb_el + 1;

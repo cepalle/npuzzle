@@ -1,7 +1,8 @@
-.idea/
+*.idea/
 *.cmx
 solver
 *.cmi
 *.o
 *.cmo
 .DS_Store
+*__pycache__

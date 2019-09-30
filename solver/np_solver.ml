@@ -216,7 +216,7 @@ let () = print_string ("max open = " ^ (string_of_int mo)) in
 let () = print_newline () in
 let () = print_string ("closed = " ^ (string_of_int nc)) in
 let () = print_newline () in
-let () = print_string ("nb transition = " ^ (string_of_int cost) ^ " " ^ (string_of_int (length hys))) in
+let () = print_string ("nb transition = " ^ (string_of_int cost)) in
 let () = print_newline () in
 let () = print_newline () in
   iter (fun m ->

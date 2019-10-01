@@ -12,6 +12,7 @@ def crop_image(input):
         return None
     img_width, img_height = img.size
     if img_width < SIZE_WINDOW or img_height < SIZE_WINDOW:
+        print("Image is too small!")
         return None
     cropped_img = img.crop(((img_width - SIZE_WINDOW) // 2,
                             (img_height - SIZE_WINDOW) // 2,

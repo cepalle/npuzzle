@@ -84,7 +84,7 @@ class PuzzleWindow:
                 elif self.puzzle[y][x] != EMPTY_CASE:
                     self._label[y][x] = Label(self.root, justify="center", bg=self._gradient[self.puzzle[y][x] - 1].hex,
                                               text=str(self.puzzle[y][x]), font=self._font, borderwidth=1)
-                if self.puzzle[y][x] != EMPTY_CASE:
+                if self.puzzle[y][x] != EMPTY_CASE and type(self._label[y][x]) is not int:
                     self._label[y][x].config(width=self._cell_size, height=int(self._cell_size / 2))
                     self._label[y][x].place(x=x * self._size_of_one + self._spaces, y=y * self._size_of_one + self._spaces,
                                             width=self._size_of_one - self._spaces, height=self._size_of_one - self._spaces)
@@ -114,16 +114,16 @@ class PuzzleWindow:
                                       text=str(self.puzzle[y][x]), font=self._font, borderwidth=1)
         self._label[y][x].config(width=self._cell_size, height=int(self._cell_size / 2))
         for move in move_values:
-            if direction == MOVE_UP:
+            if direction == MOVE_UP and type(self._label[y][x]) is not int:
                 self._label[y][x].place(x=x * self._size_of_one + self._spaces, y=y * self._size_of_one + self._spaces + move,
                                         width=self._size_of_one - self._spaces, height=self._size_of_one - self._spaces)
-            elif direction == MOVE_DOWN:
+            elif direction == MOVE_DOWN and type(self._label[y][x]) is not int:
                 self._label[y][x].place(x=x * self._size_of_one + self._spaces, y=y * self._size_of_one + self._spaces - move,
                                         width=self._size_of_one - self._spaces, height=self._size_of_one - self._spaces)
-            elif direction == MOVE_LEFT:
+            elif direction == MOVE_LEFT and type(self._label[y][x]) is not int:
                 self._label[y][x].place(x=x * self._size_of_one + self._spaces + move, y=y * self._size_of_one + self._spaces,
                                         width=self._size_of_one - self._spaces, height=self._size_of_one - self._spaces)
-            else:
+            elif type(self._label[y][x]) is not int:
                 self._label[y][x].place(x=x * self._size_of_one + self._spaces - move, y=y * self._size_of_one + self._spaces,
                                         width=self._size_of_one - self._spaces, height=self._size_of_one - self._spaces)
             self.root.update()
@@ -134,7 +134,8 @@ class PuzzleWindow:
         (x, y) = new_pos
         self.puzzle[y][x] = self.puzzle[ex_y][ex_x]
         self.puzzle[ex_y][ex_x] = EMPTY_CASE
-        self._label[ex_y][ex_x].destroy()
+        if type(self._label[ex_y][ex_x]) is not int:
+            self._label[ex_y][ex_x].destroy()
         self.__slow_move__(x, y, direction)
         self._label[ex_y][ex_x] = EMPTY_CASE
 
@@ -149,19 +150,19 @@ class PuzzleWindow:
         print("speed_lvl", speed_lvl)
         if speed_lvl == 1:
             self.speed = 500
-            self.divider_speed = 10
+            self.divider_speed = 8
         elif speed_lvl == 2:
             self.speed = 400
-            self.divider_speed = 8
+            self.divider_speed = 4
         elif speed_lvl == 3:
             self.speed = 300
-            self.divider_speed = 6
+            self.divider_speed = 3
         elif speed_lvl == 4:
             self.speed = 200
-            self.divider_speed = 4
+            self.divider_speed = 2
         elif speed_lvl == 5:
             self.speed = 100
-            self.divider_speed = 2
+            self.divider_speed = 1
 
     def move_piece(self, piece, direction):
         self.root.after(self._next_action, self.__do_move__, piece, direction)

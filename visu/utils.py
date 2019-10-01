@@ -1,5 +1,3 @@
-from PIL import Image, ImageTk
-
 def add_piece_direction(piece, direction):
     return tuple(map(lambda x, y: x + y, piece, direction))
 
